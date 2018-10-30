@@ -5,6 +5,8 @@
 ***
 **api查询：** [http://rap2.taobao.org/](http://rap2.taobao.org/)&ensp;&ensp;&ensp;&ensp; 账号/密码：839128964@qq.com/123456
 
+**代码生成程序:** /project/autogenerator
+
 
 
 
