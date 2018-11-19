@@ -1,5 +1,6 @@
 package com.robinyoung10.lesstime.model;
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
 import java.io.Serializable;
@@ -19,6 +20,7 @@ public class Cpxx extends Model<Cpxx> {
 
     private String sjbh;
 
+    @TableId
     private String cpbh;
 
     private Integer lx;

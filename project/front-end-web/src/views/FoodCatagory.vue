@@ -1,8 +1,7 @@
 <template>
   <div class="table">
-    <x-header id="header">管理餐桌</x-header>
+    <x-header id="header">管理菜品</x-header>
     <div id="content">
-        <divider>长按二维码保存图片</divider>
         <load-more tip="正在加载" v-if="showLoading"></load-more>
         <group>
             <cell v-for="item in items" :title="item.czbh"><qrcode :value="item.czewm" type="img"></qrcode></cell>
@@ -20,7 +19,7 @@
 </template>
 
 <script>
-import { XHeader, Group, Cell, XButton, Qrcode, Flexbox, FlexboxItem, Divider, LoadMore } from 'vux'
+import { XHeader, Group, Cell, XButton, Qrcode, Flexbox, FlexboxItem, LoadMore } from 'vux'
 
 export default {
   name: 'home',
@@ -32,7 +31,6 @@ export default {
     Qrcode, 
     Flexbox, 
     FlexboxItem,
-    Divider,
     LoadMore
   },
   data () {

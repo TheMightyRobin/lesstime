@@ -3,6 +3,7 @@ import Router from 'vue-router'
 import Home from './views/Home.vue'
 import Login from './views/Login.vue'
 import Food from './views/Food.vue'
+import FoodCatagory from './views/FoodCatagory.vue'
 import Order from './views/Order.vue'
 import Setting from './views/Setting.vue'
 import Table from './views/Table.vue'
@@ -35,6 +36,11 @@ export default new Router({
       path: '/food',
       name: 'food',
       component: Food
+    },
+    {
+      path: '/food-catagory',
+      name: 'food-atagory',
+      component: FoodCatagory
     },
     {
       path: '/order',

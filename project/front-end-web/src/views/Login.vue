@@ -1,19 +1,20 @@
 <template>
   <div class="login">
     <x-header id="header" :left-options="{showBack: false}">Lesstime扫码点餐</x-header>
-    <div id="content">
+    <loading :show="loadingShow" text="loading..."></loading>
+    <div id="logincontent">
         <div id="signin" v-if="isRegister === false">
             <group title="登录">
-                <x-input type="text" title="账号" name="zh" placeholder="请输入账号" v-model="zh"></x-input>
-                <x-input type="password" title="密码" name="mm" placeholder="请输入密码" v-model="mm"></x-input>
+                <x-input type="text" title="账号" name="zh" placeholder="请输入账号" required v-model="zh"></x-input>
+                <x-input type="password" title="密码" name="mm" placeholder="请输入密码" required v-model="mm"></x-input>
                 <x-button @click.native="login">登录</x-button>
             </group>
         </div>
         <div id="register" v-if="isRegister === true">
             <group title="注册">
-                <x-input type="text" title="商家名称" name="sjmc" placeholder="请输入商家名称" v-model="sjmc"></x-input>
-                <x-input type="text" title="账号" name="zh" placeholder="请输入账号" v-model="zh"></x-input>
-                <x-input type="password" title="密码" name="mm" placeholder="请输入密码" v-model="mm"></x-input>
+                <x-input type="text" title="商家名称" name="sjmc" placeholder="请输入商家名称" required v-model="sjmc"></x-input>
+                <x-input type="text" title="账号" name="zh" placeholder="请输入账号" required v-model="zh"></x-input>
+                <x-input type="password" title="密码" name="mm" placeholder="请输入密码" required v-model="mm"></x-input>
                 <x-button @click.native="register">注册</x-button>
             </group>
         </div>
@@ -25,16 +26,17 @@
 </template>
 
 <style>
-#content {
-    padding: 20px;
+.login {
+    text-align: center;
 }
+
 #signin {
     
 }
 </style>
 
 <script>
-import { XHeader, XInput, Group, XButton, Toast } from 'vux'
+import { XHeader, XInput, Group, XButton, Toast, Loading } from 'vux'
 
 export default {
   name: 'login',
@@ -43,7 +45,8 @@ export default {
     XInput,
     Group,
     XButton,
-    Toast
+    Toast,
+    Loading
   },
   data: function () {
       return {
@@ -52,33 +55,37 @@ export default {
           mm: '',
           sjmc: '',
           showToast: false,
-          message: ''
+          message: '',
+          loadingShow: false
       }
+  },
+  created () {
+      this.$store.state.needTabbar = false;
   },
   methods: {
       switchContent () {
         this.isRegister = !this.isRegister;
       },
       login () {
+          this.loadingShow = true;
           this.$http.post('/lesstime-web/login',  { zh: this.zh, mm: this.mm })
           .then((response) => {
-              console.log(response);
+              this.loadingShow = false;
               if(response.data) {
-                  this.$store.state.sjbh = response.data.sjbh;
-                  this.$store.state.sjmc = response.data.sjmc;
-                  this.$store.state.dh = response.data.dh;
-                  this.$store.state.yysj = response.data.yysj;
-                  this.$store.state.ctjj = response.data.ctjj;
-                  localStorage.setItem('isLogin', true);
+                  this.$store.commit('login');
+                  this.$store.commit('setInfo', response.data);
                   this.$router.push('/home');
-                  console.log(this.$store.state);
+              } else {
+                  this.message = "账号或密码错误，请重试";
+                  this.showToast = true;
               }
           })
       },
       register () {
+          this.loadingShow = true;
           this.$http.post('/lesstime-web/register',  { sjmc: this.sjmc, zh: this.zh, mm: this.mm })
           .then((response) => {
-              console.log(response);
+              this.loadingShow = false;
               this.message = response.data;
               this.showToast = true;
               this.switchContent();

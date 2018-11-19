@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <tabbar id="tabbar" v-if="tabbarShow">
+    <tabbar id="tabbar" v-if="$store.state.needTabbar">
       <tabbar-item link="/about">
         <img slot="icon" src="./assets/image/icon/tablestate.png">
         <span slot="label">餐桌状态</span>
@@ -19,9 +19,17 @@
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
   padding: 0
+}
+#logincontent {
+  padding: 10px 20px;
+}
+#content {
+  padding: 0px 20px;
+}
+a {
+  text-decoration: none;
 }
 #tabbar {
   position: fixed;
@@ -33,6 +41,7 @@
     top: 0;
     width: 100%;
     height: 45px;
+    z-index: 1000;
 }
 </style>
 <script>
@@ -45,7 +54,6 @@ export default {
   },
   data: function () {
     return {
-      tabbarShow: this.$store.state.isLogin
     }
   }
 }

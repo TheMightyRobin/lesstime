@@ -1,30 +1,39 @@
 <template>
   <div class="home">
-    <x-header>我的</x-header>
+    <x-header id="header">我的<a href="/setting" slot="right">设置</a></x-header>
     <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <group>
+      <cell title="商家名称" :value="$store.state.sjmc"></cell>
+      <cell title="电话" :value="$store.state.dh"></cell>
+      <cell title="营业时间" :value="$store.state.yysj"></cell>
+      <cell primary="content" title="餐厅简介" :value="$store.state.ctjj"></cell>
+      <cell title="餐桌管理" link="/table"></cell>
+      <cell title="菜品管理" link="/food"></cell>
+      <x-button id="logout" type="warn" @click.native="logout">退出登录</x-button>
+    </group>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
-import { XHeader } from 'vux'
+//import HelloWorld from '@/components/HelloWorld.vue'
+import { XHeader, Group, Cell, XButton } from 'vux'
 
 export default {
   name: 'home',
   components: {
-    HelloWorld,
-    XHeader
+    XHeader,
+    Group,
+    Cell,
+    XButton
   },
   created () {
-    if(localStorage.getItem('isLogin') === null) {
-      localStorage.setItem('isLogin', false);
-    }
-    //eval函数字符串转boolean
-    this.$store.state.isLogin = eval(localStorage.getItem('isLogin'));
-    console.log(!this.$store.state.isLogin);
-    if(!this.$store.state.isLogin) {
+      this.$store.state.isLogin = true;
+      this.$store.state.needTabbar = true;
+  },
+  methods: {
+    logout () {
+      this.$store.commit('logout');
       this.$router.push('/login');
     }
   }
