@@ -3,14 +3,21 @@ package com.robinyoung10.lesstime.controller;
 
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.robinyoung10.lesstime.model.Cpxx;
 import com.robinyoung10.lesstime.service.ICpxxService;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,11 +71,21 @@ public class CpxxController {
 		//生成菜品编号
 		String no = "cp" + cpxx.getSjbh() + "1" + num;
 		
-		UpdateWrapper<Cpxx> updateWrapper = new UpdateWrapper<>();
-		updateWrapper.eq("sjbh", cpxx.getSjbh());
+		//验证是否存在编号
+		while(true) {
+			queryWrapper.eq("cpbh", no);
+			List<Cpxx> cpxxList = cpxxService.list(queryWrapper);
+			if(cpxxList.size() > 0) {
+				num += 1;
+				no = "cp" + cpxx.getSjbh() + "1" + num;
+			} else {
+				break;
+			}
+		}
+
 		cpxx.setCpbh(no);
 		cpxx.setLx(1);
-		boolean flag = cpxxService.update(cpxx, updateWrapper);
+		boolean flag = cpxxService.save(cpxx);
 		if(flag) {
 			return cpxx;
 		} else {
@@ -132,8 +149,9 @@ public class CpxxController {
 	 */
 	@RequestMapping("/food/subfood/add")
 	@ResponseBody
-	public Cpxx foodSubfoodAdd(@RequestBody Cpxx cpxx) {
+	public Cpxx foodSubfoodAdd(Cpxx cpxx, @RequestParam("file") MultipartFile file, HttpServletRequest request) throws Exception {
 		logger.info("cpxx = {}", cpxx);
+		logger.info("file = {}", file);
 		//查询拥有多少个菜品
 		QueryWrapper<Cpxx> queryWrapper = new QueryWrapper<>();
 		queryWrapper.eq("sjbh", cpxx.getSjbh());
@@ -142,11 +160,52 @@ public class CpxxController {
 		//生成菜品编号
 		String no = "cp" + cpxx.getSjbh() + "2" + num;
 		
-		UpdateWrapper<Cpxx> updateWrapper = new UpdateWrapper<>();
-		updateWrapper.eq("sjbh", cpxx.getSjbh());
+		//验证是否存在编号
+		while(true) {
+			queryWrapper.eq("cpbh", no);
+			List<Cpxx> cpxxList = cpxxService.list(queryWrapper);
+			if(cpxxList.size() > 0) {
+				num += 1;
+				no = "cp" + cpxx.getSjbh() + "2" + num;
+			} else {
+				break;
+			}
+		}
+		
+		//隶属菜品名称转菜品编号
+		QueryWrapper<Cpxx> catagoryWrapper = new QueryWrapper<>();
+		catagoryWrapper.eq("sjbh", cpxx.getSjbh()).eq("lx", 1).eq("mc", cpxx.getLs());
+		Cpxx catagoryCpxx = cpxxService.getOne(catagoryWrapper);
+		cpxx.setLs(catagoryCpxx.getCpbh());
+		
+		if(file != null) {
+			//写入文件的路径,获取到的是部署到webapps的项目根目录+/images/
+            String path = request.getServletContext().getRealPath("");
+            int lastIndex = path.lastIndexOf("/", path.length()-2);
+            path = path.substring(0, lastIndex);
+            path += "/ROOT/images/" + cpxx.getSjbh() + "/";
+            //获取文件名
+            String filename = file.getOriginalFilename();
+            //获取时间字符
+            SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
+    		String newNo = df.format(new Date());
+    		//将文件名设置为时间+文件名
+    		filename = newNo + filename;
+            //新建文件对象
+            File filepath = new File(path, filename);
+            //如果路径不存在,就创建一个
+            if(!filepath.getParentFile().exists()) {
+                filepath.getParentFile().mkdir();
+            }
+            file.transferTo(new File(path + filename));
+            logger.info(path + filename);
+            cpxx.setTp("http://114.115.168.26:8080/images/" + cpxx.getSjbh() + "/" + filename);
+            logger.info("cpxx.getTp = {}", cpxx.getTp());
+		}
+
 		cpxx.setCpbh(no);
 		cpxx.setLx(2);
-		boolean flag = cpxxService.update(cpxx, updateWrapper);
+		boolean flag = cpxxService.save(cpxx);
 		if(flag) {
 			return cpxx;
 		} else {

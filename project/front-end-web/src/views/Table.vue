@@ -43,7 +43,7 @@ export default {
   },
   created () {
     this.$store.state.needTabbar = false;
-    this.$http.post('/lesstime-web/table/list',  { sjbh: this.$store.state.sjbh })
+    this.$http.post('http://114.115.168.26:8080/lesstime-web/table/list',  { sjbh: this.$store.state.sjbh })
     .then((response) => {
         if(response.data) {
             this.items = response.data;
@@ -53,7 +53,7 @@ export default {
   },
   methods: {
     addTable () {
-        this.$http.post('/lesstime-web/table/add',  { sjbh: this.$store.state.sjbh })
+        this.$http.post('http://114.115.168.26:8080/lesstime-web/table/add',  { sjbh: this.$store.state.sjbh })
         .then((response) => {
             if(response.data) {
                 this.items.push(response.data);
@@ -64,7 +64,7 @@ export default {
         })
     },
     deleteTable () {
-        this.$http.post('/lesstime-web/table/delete',  { sjbh: this.$store.state.sjbh })
+        this.$http.post('http://114.115.168.26:8080/lesstime-web/table/delete',  { sjbh: this.$store.state.sjbh })
         .then((response) => {
             if(response.data = '删除成功') {
                 this.items.pop();

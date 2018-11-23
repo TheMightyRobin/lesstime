@@ -22,12 +22,14 @@ router.beforeEach((to, from, next) => {
     //eval函数字符串转boolean
     store.state.isLogin = eval(window.localStorage.getItem('isLogin'));
   }
-  if(store.state.isLogin || to.name == 'login') {
+  if(store.state.isLogin && to.name == 'login') {
+    next('/');
+  } else if(store.state.isLogin || to.name == 'login') {
     next();
   } else {
     next('/login');
   }
-})
+});
 
 new Vue({
   router,

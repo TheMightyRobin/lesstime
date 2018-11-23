@@ -46,7 +46,7 @@ export default {
     },
     methods: {
         submitSetting() {
-            this.$http.post('/lesstime-web/setting', { sjbh: this.$store.state.sjbh, sjmc: this.sjmc, dh: this.dh, yysj: this.yysj, ctjj: this.ctjj })
+            this.$http.post('http://114.115.168.26:8080/lesstime-web/setting', { sjbh: this.$store.state.sjbh, sjmc: this.sjmc, dh: this.dh, yysj: this.yysj, ctjj: this.ctjj })
             .then((response) => {
                 console.log(response);
                 if(response.data) {

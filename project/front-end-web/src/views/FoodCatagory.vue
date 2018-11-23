@@ -1,25 +1,32 @@
 <template>
-  <div class="table">
-    <x-header id="header">管理菜品</x-header>
-    <div id="content">
+  <div class="food-catagory">
+    <x-header id="header">管理菜品类别<router-link to="/food-catagory-add?type=add" slot="right">添加</router-link></x-header>
+    <div>
+        <divider>列表项左滑编辑，点击进入下属菜品管理</divider>
         <load-more tip="正在加载" v-if="showLoading"></load-more>
-        <group>
-            <cell v-for="item in items" :title="item.czbh"><qrcode :value="item.czewm" type="img"></qrcode></cell>
-            <flexbox>
-                <flexbox-item>
-                <x-button type="primary" @click.native="addTable">添加一个</x-button>
-                </flexbox-item>
-                <flexbox-item>
-                <x-button type="warn" @click.native="deleteTable">删除一个</x-button>
-                </flexbox-item>
-            </flexbox>
-        </group>
+        <swipeout>
+            <swipeout-item id="item" v-for="item in items">
+                <div slot="right-menu">
+                    <swipeout-button @click.native="modifyFoodCatagory(item.cpbh, item.mc)" type="primary">编辑</swipeout-button>
+                    <swipeout-button @click.native="deleteFoodCatagory(item.cpbh)" type="warn">删除</swipeout-button>
+                </div>
+                <div slot="content" class="swipeout-content"  @click="directeFood(item.cpbh)">{{ item.mc }}</div>
+            </swipeout-item>
+        </swipeout>
     </div>
   </div>
 </template>
 
+<style>
+.swipeout-content {
+    line-height: 46px;
+    padding-left: 10px;
+    border-bottom: 1px solid #ddd;
+}
+</style>
+
 <script>
-import { XHeader, Group, Cell, XButton, Qrcode, Flexbox, FlexboxItem, LoadMore } from 'vux'
+import { XHeader, Group, Cell, XButton, Qrcode, Flexbox, FlexboxItem, LoadMore, Swipeout, SwipeoutItem, SwipeoutButton, Divider } from 'vux'
 
 export default {
   name: 'home',
@@ -31,7 +38,11 @@ export default {
     Qrcode, 
     Flexbox, 
     FlexboxItem,
-    LoadMore
+    LoadMore, 
+    Divider,
+    Swipeout, 
+    SwipeoutItem, 
+    SwipeoutButton
   },
   data () {
     return {
@@ -41,37 +52,27 @@ export default {
   },
   created () {
     this.$store.state.needTabbar = false;
-    this.$http.post('/lesstime-web/table/list',  { sjbh: this.$store.state.sjbh })
+    this.$http.post('http://114.115.168.26:8080/lesstime-web/food/catagory/list', { sjbh: this.$store.state.sjbh })
     .then((response) => {
-        if(response.data) {
-            this.items = response.data;
-            this.showLoading = false;
-        }
+        this.items = response.data;
+        this.showLoading = false;
     })
   },
   methods: {
-    addTable () {
-        this.$http.post('/lesstime-web/table/add',  { sjbh: this.$store.state.sjbh })
-        .then((response) => {
-            if(response.data) {
-                this.items.push(response.data);
-            } else {
-                this.message = "添加失败，请重试";
-                this.showToast = true;
-            }
-        })
-    },
-    deleteTable () {
-        this.$http.post('/lesstime-web/table/delete',  { sjbh: this.$store.state.sjbh })
-        .then((response) => {
-            if(response.data = '删除成功') {
-                this.items.pop();
-            } else {
-                this.message = "添加失败，请重试";
-                this.showToast = true;
-            }
-        })
-    }
+      modifyFoodCatagory (cpbh, mc) {
+          this.$router.push('/food-catagory-add?cpbh=' + cpbh + '&mc=' + mc + '&type=modify');
+      },
+      deleteFoodCatagory (cpbh) {
+          this.$http.post('http://114.115.168.26:8080/lesstime-web/food/catagory/delete', { cpbh: cpbh })
+          .then((response) => {
+              this.message = "删除成功";
+              this.showToast = true;
+              this.$router.go(0);
+          })
+      },
+      directeFood (cpbh) {
+          this.$router.push('/food?ls=' + cpbh);
+      }
   }
 }
 </script>

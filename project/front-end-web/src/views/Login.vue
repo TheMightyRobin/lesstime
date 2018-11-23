@@ -68,7 +68,7 @@ export default {
       },
       login () {
           this.loadingShow = true;
-          this.$http.post('/lesstime-web/login',  { zh: this.zh, mm: this.mm })
+          this.$http.post('http://114.115.168.26:8080/lesstime-web/login',  { zh: this.zh, mm: this.mm })
           .then((response) => {
               this.loadingShow = false;
               if(response.data) {
@@ -83,7 +83,7 @@ export default {
       },
       register () {
           this.loadingShow = true;
-          this.$http.post('/lesstime-web/register',  { sjmc: this.sjmc, zh: this.zh, mm: this.mm })
+          this.$http.post('http://114.115.168.26:8080/lesstime-web/register',  { sjmc: this.sjmc, zh: this.zh, mm: this.mm })
           .then((response) => {
               this.loadingShow = false;
               this.message = response.data;

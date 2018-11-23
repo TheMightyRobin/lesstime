@@ -9,6 +9,13 @@
 
     <!--设置默认配置方案-->
     <mvc:annotation-driven />
+    
+    <!-- 解决跨域访问问题 -->
+    <mvc:cors>
+    	<mvc:mapping path="/**" />
+    </mvc:cors>
+    
+    <mvc:resources mapping="/images/**" location="/images/"/>
 
     <!--视图解析器-->
     <bean id="viewResolver"
