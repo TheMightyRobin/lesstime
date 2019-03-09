@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Lesstime扫码点餐</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="stylesheet" href="http://g.alicdn.com/msui/sm/0.6.2/css/sm.min.css">
+    <link rel="stylesheet" href="http://g.alicdn.com/msui/sm/0.6.2/css/sm-extend.min.css">
+</head>
+<body>
+<div class="page-group">
+    <header class="bar bar-nav">
+        <h1 class="title">欢迎</h1>
+    </header>
+    <div class="content">
+        <div class="content-block" style="margin:0;padding:0">
+            <img src="/img/banner.jpg" style="width: 100%">
+        </div>
+        <div class="list-block" style="margin:0">
+            <ul>
+                <li class="item-content">
+                    <div class="item-inner">
+                        <div class="item-title">餐厅名称</div>
+                        <div id="sjmc" class="item-after"></div>
+                    </div>
+                </li>
+                <li class="item-content">
+                    <div class="item-inner">
+                        <div class="item-title">电话</div>
+                        <div id="dh" class="item-after"></div>
+                    </div>
+                </li>
+                <li class="item-content">
+                    <div class="item-inner">
+                        <div class="item-title">营业时间</div>
+                        <div id="yysj" class="item-after"></div>
+                    </div>
+                </li>
+                <li class="item-content">
+                    <div class="item-inner">
+                        <div class="item-title-row">
+                            <div class="item-title">餐厅简介</div>
+                        </div>
+                        <div id="ctjj" class="item-text"></div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="content-block">
+            <p><a id="choose" href="javascript:;" class="button button-fill button-warning button-big">立刻点餐</a></p>
+        </div>
+    </div>
+    <p id="czbh" th:text="${param.czbh}"></p>
+    <p id="sjbh" th:text="${param.sjbh}"></p>
+</div>
+
+<script type='text/javascript' src='http://g.alicdn.com/sj/lib/zepto/zepto.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='http://g.alicdn.com/msui/sm/0.6.2/js/sm.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='http://g.alicdn.com/msui/sm/0.6.2/js/sm-extend.min.js' charset='utf-8'></script>
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script>
+    var sjbh = $("#sjbh").text();
+    var czbh = $("#czbh").text();
+    var data = {
+        sjbh: $("#sjbh").text()
+    }
+    $.ajax({
+        url: "/handle/company/info",
+        type: "post",
+        contentType: "application/json;charset=UTF-8",
+        data: JSON.stringify(data),
+        dataType: 'json',
+        timeout: 20000,
+        success: function(response) {
+            console.log(response);
+            $("#sjmc").text(response.sjmc);
+            $("#dh").text(response.dh);
+            $("#yysj").text(response.yysj);
+            $("#ctjj").text(response.ctjj);
+        }
+    });
+
+    $("#choose").on('click', function() {
+        window.location.href = "/user/choose?czbh=" + czbh + "&sjbh=" + sjbh;
+    })
+</script>
+</body>
+</html>

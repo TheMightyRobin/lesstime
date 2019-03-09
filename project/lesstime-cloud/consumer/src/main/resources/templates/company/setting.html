@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>扫码点餐系统-企业设置</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+    <script src="/layui/layui.js"></script>
+</head>
+<body style="padding:10px">
+<div>
+    <form class="layui-form" style="width:50%">
+        <div class="layui-form-item">
+            <label class="layui-form-label">商家名称</label>
+            <div class="layui-input-block">
+                <input id="sjmc" type="text" name="sjmc" required  lay-verify="required" placeholder="请输入商家名称" autocomplete="off" class="layui-input" maxlength="20">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">电话</label>
+            <div class="layui-input-block">
+                <input id="dh" type="text" name="dh" required  lay-verify="required" placeholder="请输入电话" autocomplete="off" class="layui-input" maxlength="20">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">营业时间</label>
+            <div class="layui-input-block">
+                <input id="yysj" type="text" name="yysj" required  lay-verify="required" placeholder="请输入营业时间" autocomplete="off" class="layui-input" maxlength="20">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">餐厅简介</label>
+            <div class="layui-input-block">
+                <textarea id="ctjj" name="ctjj" required lay-verify="required" placeholder="请输入餐厅简介" class="layui-textarea" maxlength="50"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="save">提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    //注意：选项卡 依赖 element 模块，否则无法进行功能性操作
+    layui.use(['form', 'laydate', 'upload'], function(){
+        var form = layui.form,
+            laydate = layui.laydate,
+            upload = layui.upload;
+
+        //初始化表单
+        var sjbh = localStorage.getItem("sjbh");
+        var sjmc = localStorage.getItem("sjmc");
+        var dh = localStorage.getItem("dh");
+        var yysj = localStorage.getItem("yysj");
+        var ctjj = localStorage.getItem("ctjj");
+        $("#sjmc").val(sjmc);
+        $("#dh").val(dh);
+        $("#yysj").val(yysj);
+        $("#ctjj").text(ctjj);
+
+        //监听提交
+        form.on("submit(save)", function(data) {
+            data.field.sjbh = sjbh;
+            console.log(JSON.stringify(data.field));
+            var index = layer.load();
+            $.ajax({
+                url: "/handle/setting",
+                type: "post",
+                contentType: "application/json;charset=UTF-8",
+                data: JSON.stringify(data.field),
+                dataType: 'json',
+                timeout: 20000,
+                success: function(response) {
+                    console.log(response);
+                    layer.close(index);
+                    if(response) {
+                        layer.msg("保存成功！");
+                        localStorage.setItem("dh", data.field.dh);
+                        localStorage.setItem("yysj", data.field.yysj);
+                        localStorage.setItem("ctjj", data.field.ctjj);
+                    } else {
+                        layer.msg("保存失败，请重试！");
+                    }
+                },
+                error: function(response) {
+                    console.log(response);
+                    layer.close(index);
+                    layer.msg("请求出错，请重试!");
+                }
+            });
+            return false;
+        });
+    });
+</script>
+</body>
+</html>

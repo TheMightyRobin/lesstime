@@ -11,8 +11,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -23,7 +24,7 @@ import java.util.List;
  * @since 2018-12-12
  */
 @RestController
-@RequestMapping("/food")
+@RequestMapping("/handle/food")
 public class CpxxController {
 
     protected Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -37,9 +38,9 @@ public class CpxxController {
      * @return
      */
     @RequestMapping("/catagory/list")
-    public List<Cpxx> foodCatagoryList(@RequestBody Cpxx cpxx) {
+    public Map foodCatagoryList(Cpxx cpxx, @RequestParam("page") int page, @RequestParam("limit") int limit) {
         logger.info("===consummer===>/food/catagory/list===>czxx = {}", cpxx);
-        return lesstimeService.foodCatagoryList(cpxx);
+        return lesstimeService.foodCatagoryList(cpxx, page, limit);
     }
 
     /**
@@ -59,7 +60,7 @@ public class CpxxController {
      * @return
      */
     @RequestMapping("/catagory/update")
-    public String foodCatagoryUpdate(@RequestBody Cpxx cpxx) {
+    public boolean foodCatagoryUpdate(@RequestBody Cpxx cpxx) {
         logger.info("===consummer===>/food/catagory/update===>czxx = {}", cpxx);
         return lesstimeService.foodCatagoryUpdate(cpxx);
     }
@@ -70,7 +71,7 @@ public class CpxxController {
      * @return
      */
     @RequestMapping("/catagory/delete")
-    public String foodCatagoryDelete(@RequestBody Cpxx cpxx) {
+    public Map foodCatagoryDelete(@RequestBody Cpxx cpxx) {
         logger.info("===consummer===>/food/catagory/delete===>czxx = {}", cpxx);
         return lesstimeService.foodCatagoryDelete(cpxx);
     }
@@ -81,9 +82,9 @@ public class CpxxController {
      * @return
      */
     @RequestMapping("/subfood/list")
-    public List<Cpxx> foodSubfoodList(@RequestBody Cpxx cpxx) {
+    public Map foodSubfoodList(Cpxx cpxx, @RequestParam("page") int page, @RequestParam("limit") int limit) {
         logger.info("===consummer===>/food//subfood/list===>czxx = {}", cpxx);
-        return lesstimeService.foodSubfoodList(cpxx);
+        return lesstimeService.foodSubfoodList(cpxx, page, limit);
     }
 
     /**
@@ -92,10 +93,25 @@ public class CpxxController {
      * @return
      */
     @RequestMapping("/subfood/add")
-    public Cpxx foodSubfoodAdd(Cpxx cpxx, @RequestParam("file") MultipartFile file, HttpServletRequest request) {
+    public boolean foodSubfoodAdd(@RequestBody Cpxx cpxx) {
         logger.info("===consummer===>/food/subfood/add===>czxx = {}", cpxx);
-        logger.info("===consummer===>/food/subfood/add===>file = {}", file);
-        return lesstimeService.foodSubfoodAdd(cpxx, file, request);
+        return lesstimeService.foodSubfoodAdd(cpxx);
+    }
+
+    /**
+     * 菜品图片上传
+     * @param file
+     * @param sjbh
+     * @return
+     */
+    @RequestMapping("/subfood/file")
+    public Map foodSubfoodFile(@RequestParam("file") MultipartFile file, @RequestParam("sjbh") String sjbh) {
+        logger.info("===consummer===>/food/subfood/file===>file = {}", file);
+        logger.info("===consummer===>/food/subfood/file===>sjbh = {}", sjbh);
+        String tp = lesstimeService.foodSubfoodAddFile(file, sjbh);
+        Map map = new HashMap();
+        map.put("tp", tp);
+        return map;
     }
 
     /**
@@ -104,7 +120,7 @@ public class CpxxController {
      * @return
      */
     @RequestMapping("/subfood/update")
-    public String foodSubfoodUpdate(@RequestBody Cpxx cpxx) {
+    public boolean foodSubfoodUpdate(@RequestBody Cpxx cpxx) {
         logger.info("===consummer===>/food/subfood/update===>czxx = {}", cpxx);
         return lesstimeService.foodSubfoodUpdate(cpxx);
     }
@@ -115,7 +131,7 @@ public class CpxxController {
      * @return
      */
     @RequestMapping("/subfood/delete")
-    public String foodSubfoodDelete(@RequestBody Cpxx cpxx) {
+    public boolean foodSubfoodDelete(@RequestBody Cpxx cpxx) {
         logger.info("===consummer===>/food/subfood/delete===>czxx = {}", cpxx);
         return lesstimeService.foodSubfoodDelete(cpxx);
     }

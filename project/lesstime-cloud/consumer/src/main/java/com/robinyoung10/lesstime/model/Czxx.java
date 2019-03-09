@@ -19,7 +19,7 @@ public class Czxx extends Model<Czxx> {
 
     private String sjbh;
 
-    private Integer czbh;
+    private String czbh;
 
     private String czewm;
 
@@ -34,11 +34,11 @@ public class Czxx extends Model<Czxx> {
         this.sjbh = sjbh;
     }
 
-    public Integer getCzbh() {
+    public String getCzbh() {
         return czbh;
     }
 
-    public void setCzbh(Integer czbh) {
+    public void setCzbh(String czbh) {
         this.czbh = czbh;
     }
 

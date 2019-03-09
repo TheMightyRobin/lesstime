@@ -9,13 +9,16 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.robinyoung10.lesstime.model.Czxx;
 import com.robinyoung10.lesstime.service.ICzxxService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -45,12 +48,30 @@ public class CzxxController {
     @RequestMapping("/table/add")
     public Czxx addTable(@RequestBody Czxx czxx) {
         logger.info("===service===>/table/add===>czxx = {}", czxx);
+        //查询商家餐桌数+1
         QueryWrapper<Czxx> wrapper = new QueryWrapper<>();
         wrapper.eq("sjbh", czxx.getSjbh());
         int num = czxxService.count(wrapper) + 1;
-        String url = request.getScheme() +"://" + request.getServerName() + ":" +request.getServerPort() + request.getServletPath();
-        czxx.setCzbh(num);
-        czxx.setCzewm(url + "?czbh=" + num + "&sjbh=" + czxx.getSjbh());
+        //拼接餐桌编号
+        String czbh = "cz-" + czxx.getSjbh() + "-" + num;
+        //查看数据库是否有相同编号
+        while(true) {
+            QueryWrapper<Czxx> existQueryWrapper = new QueryWrapper<>();
+            existQueryWrapper.eq("czbh", czbh);
+            int count = czxxService.count(existQueryWrapper);
+            if(count > 0) {
+                num++;
+                czbh = "cz-" + czxx.getSjbh() + "-" + num;
+            } else {
+                break;
+            }
+        }
+        //拼接餐桌二维码链接
+        //String url = "http://localhost:9000/user/welcome";
+        String url = "http://114.115.168.26:9000/user/welcome";
+        //插入数据库
+        czxx.setCzbh(czbh);
+        czxx.setCzewm(url + "?czbh=" + czbh + "&sjbh=" + czxx.getSjbh());
         czxx.setCzzt(0);
         boolean flag = czxxService.save(czxx);
         if(flag) {
@@ -66,12 +87,32 @@ public class CzxxController {
      * @return
      */
     @RequestMapping("/table/list")
-    public List<Czxx> listTable(@RequestBody Czxx czxx) {
+    public Map listTable(@RequestBody Czxx czxx, @RequestParam int page, @RequestParam int limit) {
         logger.info("===service===>/table/list===>czxx = {}", czxx);
+        logger.info("===service===>/table/list===>page = {}", page);
+        logger.info("===service===>/table/list===>limit = {}", limit);
         QueryWrapper<Czxx> wrapper = new QueryWrapper<>();
         wrapper.eq("sjbh", czxx.getSjbh());
-        List<Czxx> list = czxxService.list(wrapper);
-        return list;
+        List<Czxx> czxxList = czxxService.list(wrapper);
+        //查询到的总数，返回数据要用到
+        int count = czxxList.size();
+        //list截取分页的索引
+        int fromIndex = (page-1)*limit;
+        int toIndex = page * limit;
+        //索引最大值不能超过list总个数，否则会出现越界
+        if(toIndex > count) {
+            toIndex = count;
+        }
+        //截取分页数据
+        czxxList = czxxList.subList(fromIndex, toIndex);
+
+        //使用map来返回数据
+        Map map = new HashMap();
+        map.put("code", 0);
+        map.put("msg", "");
+        map.put("count", count);
+        map.put("data", czxxList);
+        return map;
     }
 
     /**
@@ -80,19 +121,21 @@ public class CzxxController {
      * @return
      */
     @RequestMapping("/table/delete")
-    public String deleteTable(@RequestBody Czxx czxx) {
+    public boolean deleteTable(@RequestBody Czxx czxx) {
         logger.info("===service===>/table/delete===>czxx = {}", czxx);
-        QueryWrapper<Czxx> entityWrapper = new QueryWrapper<>();
-        entityWrapper.eq("sjbh", czxx.getSjbh());
-        int num = czxxService.count(entityWrapper);
         UpdateWrapper<Czxx> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq("sjbh", czxx.getSjbh()).eq("czbh", num);
-        boolean message = czxxService.remove(updateWrapper);
-        if(message) {
-            return "删除成功";
-        } else {
-            return "删除失败";
-        }
+        updateWrapper.eq("sjbh", czxx.getSjbh()).eq("czbh", czxx.getCzbh());
+        boolean flag = czxxService.remove(updateWrapper);
+        return flag;
     }
+
+    @RequestMapping("/table/seat")
+    public boolean tableSeat(@RequestBody Czxx czxx) {
+        logger.info("===service===>/table/seat===>czxx = {}", czxx);
+        czxx.setCzzt(2);
+        boolean flag = czxxService.updateById(czxx);
+        return flag;
+    }
+
 }
 

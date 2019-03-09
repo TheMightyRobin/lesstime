@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>扫码点餐系统-餐桌二维码</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+    <script src="/layui/layui.js"></script>
+    <script src="https://cdn.bootcss.com/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
+</head>
+<body>
+<div style="padding:20px 20%;text-align:center">
+    <div id="qrcode"></div>
+</div>
+<p id="czewm" style="visibility:hidden" th:text="${param.czewm}"></p>
+<script>
+    var czewm = $("#czewm").text();
+    $("#qrcode").qrcode(czewm);
+</script>
+</body>
+</html>

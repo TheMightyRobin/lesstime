@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2018-12-12
  */
 @RestController
+@RequestMapping("/handle")
 public class SjxxController {
 
     protected Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -31,6 +33,7 @@ public class SjxxController {
      * @return
      */
     @RequestMapping("/register")
+    @ResponseBody
     public String register(@RequestBody Sjxx sjxx) {
         logger.info("===consummer===>/register===>sjxx = {}", sjxx);
         return lesstimeService.register(sjxx);
@@ -53,8 +56,19 @@ public class SjxxController {
      * @return
      */
     @RequestMapping("/setting")
-    public Sjxx setting(@RequestBody Sjxx sjxx) {
+    public boolean setting(@RequestBody Sjxx sjxx) {
         logger.info("===consummer===>/setting===>sjxx = {}", sjxx);
         return lesstimeService.setting(sjxx);
+    }
+
+    /**
+     * 用户访问欢迎页获取商家名称电话等信息
+     * @param sjxx
+     * @return
+     */
+    @RequestMapping("/company/info")
+    public Sjxx info(@RequestBody Sjxx sjxx) {
+        logger.info("===consummer===>/info===>sjxx = {}", sjxx);
+        return lesstimeService.info(sjxx);
     }
 }

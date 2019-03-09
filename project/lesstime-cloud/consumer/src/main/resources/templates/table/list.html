@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>扫码点餐系统-餐桌列表</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+    <script src="/layui/layui.js"></script>
+</head>
+<body style="padding:10px">
+<button id="add" class="layui-btn layui-btn-radius">添加一个</button>
+<div>
+    <table id="list" lay-filter="list" lay-data="{id: 'list'}"></table>
+</div>
+
+<script type="text/html" id="bar">
+    <a class="layui-btn layui-btn-xs" lay-event="detail">查看</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<script>
+    layui.use(['table', 'laypage', 'layer'], function() {
+        var table = layui.table,
+            laypage = layui.laypage,
+            layer = layui.layer;
+
+        var sjbh = localStorage.getItem('sjbh');
+        var data = {
+            sjbh : sjbh
+        }
+
+        //渲染表格
+        table.render({
+            elem: '#list',
+            url: '/handle/table/list',
+            where: data,
+            page: true,
+            cols: [
+                [
+                    {field: 'czbh', title: '餐桌编号', sort: true, fixed: 'left'},
+                    {field: 'czewm', title: '餐桌二维码'},
+                    {field: 'czzt', title: '餐桌状态'},
+                    {title: "操作", fixed: 'right', align:'center', toolbar: '#bar'} //这里的toolbar值是模板元素的选择器
+                ]
+            ]
+        });
+
+        $("#add").on("click", function() {
+            var index = layer.load();
+            $.ajax({
+                url: "/handle/table/add",
+                type: "post",
+                contentType: "application/json;charset=UTF-8",
+                data: JSON.stringify(data),
+                dataType: "json",
+                timeout: 20000,
+                success: function(response) {
+                    layer.close(index);
+                    if(response) {
+                        layer.msg("添加成功", {icon: 1, time: 1000}, function() {
+                            table.reload('list');
+                        });
+                    } else {
+                        layer.msg("添加失败");
+                    }
+                },
+                error: function(response) {
+                    layer.close(loadIndex);
+                    console.log(response);
+                    layer.msg("请求出错，请重试！");
+                }
+            });
+        });
+
+        //操作列的两个按钮绑定各自的操作
+        table.on('tool(list)', function(obj) {
+            console.log(obj);
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event;  //获得 lay-event 对应的值
+
+            if(layEvent == 'detail') {
+                var url = data.czewm;
+                console.log(data.czewm);
+                layer.open({
+                    type: 2,
+                    title: '餐桌二维码',
+                    area: ['60%', '60%'],
+                    offset: '50px',
+                    content: "/table/info?czewm=" + encodeURIComponent(data.czewm)  //encodeURIComponent为url编码，防止参数中&字符后面被截断
+                });
+            } else if(layEvent == 'del') {
+                layer.confirm('确定删除吗?', {icon: 3, title:'提示'}, function(index){
+                    console.log(index);
+                    var loadIndex = layer.load();
+                    $.ajax({
+                        url: "/handle/table/delete",
+                        type: "post",
+                        contentType: "application/json;charset=UTF-8",
+                        data: JSON.stringify(data),
+                        dataType: 'json',
+                        timeout: 20000,
+                        success: function(response) {
+                            layer.close(loadIndex);
+                            if(response) {
+                                layer.msg("删除成功！", {icon: 1, time: 1000}, function() {
+                                    table.reload('list');
+                                });
+                            } else {
+                                layer.msg("删除失败，请重试！");
+                            }
+                        },
+                        error: function(response) {
+                            layer.close(loadIndex);
+                            console.log(response);
+                            layer.msg("请求出错，请重试！");
+                        }
+                    });
+                    layer.close(index);
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>

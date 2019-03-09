@@ -5,16 +5,16 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.robinyoung10.lesstime.model.Cpxx;
 import com.robinyoung10.lesstime.service.ICpxxService;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,12 +43,31 @@ public class CpxxController {
      * @return
      */
     @RequestMapping("/catagory/list")
-    public List<Cpxx> foodCatagoryList(@RequestBody Cpxx cpxx) {
+    public Map foodCatagoryList(@RequestBody Cpxx cpxx, @RequestParam int page, @RequestParam int limit) {
         logger.info("===service===>/food/catagory/list===>cpxx = {}", cpxx);
+        //根据sjbh和lx为1查询菜品信息列表
         QueryWrapper<Cpxx> wrapper = new QueryWrapper<>();
         wrapper.eq("sjbh", cpxx.getSjbh()).eq("lx", 1);
         List<Cpxx> cpxxList = cpxxService.list(wrapper);
-        return cpxxList;
+        //查询到的总数，返回数据要用到
+        int count = cpxxList.size();
+        //list截取分页的索引
+        int fromIndex = (page-1)*limit;
+        int toIndex = page * limit;
+        //索引最大值不能超过list总个数，否则会出现越界
+        if(toIndex > count) {
+            toIndex = count;
+        }
+        //截取分页数据
+        cpxxList = cpxxList.subList(fromIndex, toIndex);
+
+        //使用map来返回数据
+        Map map = new HashMap();
+        map.put("code", 0);
+        map.put("msg", "");
+        map.put("count", count);
+        map.put("data", cpxxList);
+        return map;
     }
 
     /**
@@ -65,15 +84,16 @@ public class CpxxController {
         queryWrapper.eq("lx", 1);
         int num = cpxxService.count(queryWrapper) + 1;
         //生成菜品编号
-        String no = "cp" + cpxx.getSjbh() + "1" + num;
+        String no = "cp-" + cpxx.getSjbh() + "-1-" + num;
 
         //验证是否存在编号
         while(true) {
-            queryWrapper.eq("cpbh", no);
-            List<Cpxx> cpxxList = cpxxService.list(queryWrapper);
+            QueryWrapper<Cpxx> existQueryWrapper = new QueryWrapper<>();
+            existQueryWrapper.eq("cpbh", no);
+            List<Cpxx> cpxxList = cpxxService.list(existQueryWrapper);
             if(cpxxList.size() > 0) {
                 num += 1;
-                no = "cp" + cpxx.getSjbh() + "1" + num;
+                no = "cp-" + cpxx.getSjbh() + "-1-" + num;
             } else {
                 break;
             }
@@ -95,14 +115,10 @@ public class CpxxController {
      * @return
      */
     @RequestMapping("/catagory/update")
-    public String foodCatagoryUpdate(@RequestBody Cpxx cpxx) {
+    public boolean foodCatagoryUpdate(@RequestBody Cpxx cpxx) {
         logger.info("===service===>/food/catagory/update===>cpxx = {}", cpxx);
         boolean flag = cpxxService.updateById(cpxx);
-        if(flag) {
-            return "修改成功";
-        } else {
-            return "修改失败";
-        }
+        return flag;
     }
 
     /**
@@ -111,19 +127,25 @@ public class CpxxController {
      * @return
      */
     @RequestMapping("/catagory/delete")
-    public String foodCatagoryDelete(@RequestBody Cpxx cpxx) {
+    public Map foodCatagoryDelete(@RequestBody Cpxx cpxx) {
         logger.info("===service===>/food/catagory/delete===>cpxx = {}", cpxx);
+        //查询菜品类别的隶属菜品列表
         QueryWrapper<Cpxx> wrapper = new QueryWrapper<>();
         wrapper.eq("ls", cpxx.getCpbh());
         List<Cpxx> cpxxList = cpxxService.list(wrapper);
+        //用于返回数据的map
+        Map map = new HashMap();
         if(cpxxList.size() > 0) {
-            return "菜品类别有隶属菜品，无法删除";
+            map.put("message", "菜品类别有隶属菜品，无法删除");
+            return map;
         } else {
             boolean flag = cpxxService.removeById(cpxx);
             if(flag) {
-                return "删除成功";
+                map.put("message", "删除成功");
+                return map;
             } else {
-                return "删除失败";
+                map.put("message", "删除失败");
+                return map;
             }
         }
     }
@@ -134,12 +156,38 @@ public class CpxxController {
      * @return
      */
     @RequestMapping("/subfood/list")
-    public List<Cpxx> foodSubfoodList(@RequestBody Cpxx cpxx) {
+    public Map foodSubfoodList(@RequestBody Cpxx cpxx, @RequestParam int page, @RequestParam int limit) {
         logger.info("===service===>/food/subfood/list===>cpxx = {}", cpxx);
+        //查询菜品列表
         QueryWrapper<Cpxx> wrapper = new QueryWrapper<>();
-        wrapper.eq("sjbh", cpxx.getSjbh()).eq("ls", cpxx.getLs());
+        wrapper.eq("sjbh", cpxx.getSjbh()).eq("lx", 2);
         List<Cpxx> cpxxList = cpxxService.list(wrapper);
-        return cpxxList;
+        //把菜品隶属从编号转为名称
+        for(Cpxx item : cpxxList) {
+            QueryWrapper<Cpxx> catagoryWrapper = new QueryWrapper<>();
+            catagoryWrapper.eq("cpbh", item.getLs());
+            Cpxx catagory = cpxxService.getOne(catagoryWrapper);
+            item.setLs(catagory.getMc());
+        }
+        //查询到的总数，返回数据要用到
+        int count = cpxxList.size();
+        //list截取分页的索引
+        int fromIndex = (page-1)*limit;
+        int toIndex = page * limit;
+        //索引最大值不能超过list总个数，否则会出现越界
+        if(toIndex > count) {
+            toIndex = count;
+        }
+        //截取分页数据
+        cpxxList = cpxxList.subList(fromIndex, toIndex);
+
+        //使用map来返回数据
+        Map map = new HashMap();
+        map.put("code", 0);
+        map.put("msg", "");
+        map.put("count", count);
+        map.put("data", cpxxList);
+        return map;
     }
 
     /**
@@ -148,21 +196,21 @@ public class CpxxController {
      * @return
      */
     @RequestMapping("/subfood/add")
-    public Cpxx foodSubfoodAdd(Cpxx cpxx, @RequestParam("file") MultipartFile file, HttpServletRequest request) throws Exception {
+    public boolean foodSubfoodAdd(@RequestBody Cpxx cpxx) {
         logger.info("===service===>/food/subfood/add===>cpxx = {}", cpxx);
-        logger.info("===service===>/food/subfood/add===>file = {}", file);
         //查询拥有多少个菜品
         QueryWrapper<Cpxx> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("sjbh", cpxx.getSjbh());
         queryWrapper.eq("lx", 2);
         int num = cpxxService.count(queryWrapper) + 1;
         //生成菜品编号
-        String no = "cp" + cpxx.getSjbh() + "2" + num;
+        String no = "cp-" + cpxx.getSjbh() + "-2-" + num;
 
         //验证是否存在编号
         while(true) {
-            queryWrapper.eq("cpbh", no);
-            List<Cpxx> cpxxList = cpxxService.list(queryWrapper);
+            QueryWrapper<Cpxx> existQueryWrapper = new QueryWrapper<>();
+            existQueryWrapper.eq("cpbh", no);
+            List<Cpxx> cpxxList = cpxxService.list(existQueryWrapper);
             if(cpxxList.size() > 0) {
                 num += 1;
                 no = "cp" + cpxx.getSjbh() + "2" + num;
@@ -171,45 +219,40 @@ public class CpxxController {
             }
         }
 
-        //隶属菜品名称转菜品编号
-        QueryWrapper<Cpxx> catagoryWrapper = new QueryWrapper<>();
-        catagoryWrapper.eq("sjbh", cpxx.getSjbh()).eq("lx", 1).eq("mc", cpxx.getLs());
-        Cpxx catagoryCpxx = cpxxService.getOne(catagoryWrapper);
-        cpxx.setLs(catagoryCpxx.getCpbh());
-
-        if(file != null) {
-            //写入文件的路径,获取到的是部署到webapps的项目根目录+/images/
-            String path = request.getServletContext().getRealPath("");
-            int lastIndex = path.lastIndexOf("/", path.length()-2);
-            path = path.substring(0, lastIndex);
-            path += "/ROOT/images/" + cpxx.getSjbh() + "/";
-            //获取文件名
-            String filename = file.getOriginalFilename();
-            //获取时间字符
-            SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
-            String newNo = df.format(new Date());
-            //将文件名设置为时间+文件名
-            filename = newNo + filename;
-            //新建文件对象
-            File filepath = new File(path, filename);
-            //如果路径不存在,就创建一个
-            if(!filepath.getParentFile().exists()) {
-                filepath.getParentFile().mkdir();
-            }
-            file.transferTo(new File(path + filename));
-            logger.info(path + filename);
-            cpxx.setTp("http://114.115.168.26:8080/images/" + cpxx.getSjbh() + "/" + filename);
-            logger.info("===service===>/food/subfood/add===>cpxx.getTp = {}", cpxx.getTp());
-        }
-
         cpxx.setCpbh(no);
         cpxx.setLx(2);
         boolean flag = cpxxService.save(cpxx);
-        if(flag) {
-            return cpxx;
-        } else {
-            return new Cpxx();
+        return flag;
+    }
+
+    /**
+     * 菜品图片文件写入
+     * @param file
+     * @param sjbh
+     * @return
+     */
+    @RequestMapping("/subfood/add/file")
+    public String foodSubfoodAddFile(@RequestParam("file") MultipartFile file, @RequestParam("sjbh") String sjbh) throws Exception {
+//        String path = "D:\\graduation-project\\workspace\\lesstime-cloud";
+//        path += "\\ROOT\\images\\" + sjbh + "\\";
+        String path = "/home/tomcat/apache-tomcat-8.5.34/webapps";
+        path += "/ROOT/images/" + sjbh + "/";
+        //获取文件名
+        String filename = file.getOriginalFilename();
+        //获取时间字符
+        SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
+        String newNo = df.format(new Date());
+        //将文件名设置为时间+文件名
+        filename = newNo + filename;
+        //新建文件对象
+        File filepath = new File(path, filename);
+        //如果路径不存在,就创建一个
+        if(!filepath.getParentFile().exists()) {
+            filepath.getParentFile().mkdir();
         }
+        file.transferTo(new File(path + filename));
+        logger.info(path + filename);
+        return "http://114.115.168.26:8080/images/" + sjbh + "/" + filename;
     }
 
     /**
@@ -218,14 +261,10 @@ public class CpxxController {
      * @return
      */
     @RequestMapping("/subfood/update")
-    public String foodSubfoodUpdate(@RequestBody Cpxx cpxx) {
+    public boolean foodSubfoodUpdate(@RequestBody Cpxx cpxx) {
         logger.info("===service===>/food/subfood/update===>cpxx = {}", cpxx);
         boolean flag = cpxxService.updateById(cpxx);
-        if(flag) {
-            return "修改成功";
-        } else {
-            return "修改失败";
-        }
+        return flag;
     }
 
     /**
@@ -234,14 +273,10 @@ public class CpxxController {
      * @return
      */
     @RequestMapping("/subfood/delete")
-    public String foodSubfoodDelete(@RequestBody Cpxx cpxx) {
+    public boolean foodSubfoodDelete(@RequestBody Cpxx cpxx) {
         logger.info("===service===>/food/subfood/delete===>cpxx = {}", cpxx);
         boolean flag = cpxxService.removeById(cpxx);
-        if(flag) {
-            return "删除成功";
-        } else {
-            return "删除失败";
-        }
+        return flag;
     }
 }
 

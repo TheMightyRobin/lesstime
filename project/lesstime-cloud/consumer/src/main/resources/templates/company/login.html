@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>扫码点餐系统-企业登录</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+    <script src="/layui/layui.js"></script>
+    <!--<script src="/js/isQyLogin.js"></script>-->
+    <link rel="stylesheet" href="/css/login.css">
+</head>
+<body class="layui-bg-green">
+<div class="layui-container">
+    <div class="layui-row form-container">
+        <div class="layui-col-lg4 layui-col-lg-offset4 layui-bg-gray form-block">
+            <h1>扫码点餐系统</h1><br>
+                <form class="layui-form" id="loginForm">
+                    <div class="layui-form-item">
+                        <input type="text" name="zh" required  lay-verify="required" placeholder="帐号" autocomplete="off" class="layui-input"><br>
+                        <input type="password" name="mm" required lay-verify="required" placeholder="密码" autocomplete="off" class="layui-input"><br>
+                        <button class="layui-btn submit-btn" lay-submit lay-filter="login">登录</button>
+                        <a class="layui-form-mid jump-register" href="register">还未有账号？请注册</a>
+                    </div>
+                </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    layui.use(['form', 'layer'], function() {
+        var form = layui.form,
+            layer = layui.layer;
+
+        form.on('submit(login)', function(data) {
+            console.log(data.field);
+            var index = layer.load();
+            $.ajax({
+                url: '/handle/login',
+                type: 'post',
+                contentType: "application/json;charset=UTF-8",
+                data: JSON.stringify(data.field),
+                dataType: 'json',
+                timeout: 20000,
+                success: function(response) {
+                    console.log(response);
+                    layer.close(index);
+                    layer.msg("登录成功");
+                    //将返回的企业信息储存在localStorage
+                    for(var prop in response) {
+                        localStorage.setItem("" + prop, response[prop]);
+                    }
+                    window.location.href="/home";
+                },
+                error: function(response) {
+                    console.log(response);
+                    layer.close(index);
+                    layer.msg("请求出错，请重试!");
+                }
+            });
+            return false;
+        })
+    })
+</script>
+</body>
+</html>

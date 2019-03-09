@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Lesstime扫码点餐</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="stylesheet" href="http://g.alicdn.com/msui/sm/0.6.2/css/sm.min.css">
+    <link rel="stylesheet" href="http://g.alicdn.com/msui/sm/0.6.2/css/sm-extend.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <style type="text/css">
+        a {
+            color: #0C0C0C;
+        }
+        #already, #spend {
+            color: #FF5722;
+        }
+        #catagory a {
+            line-height: 1rem;
+            padding: 0.75rem 0 0.75rem 0;
+            color: #0C0C0C;
+        }
+        .food-title, .food-describe {
+            margin: 0.1rem;
+        }
+        .food-describe {
+            font-size: small;
+            color: #c2c2c2;
+        }
+        .food-price {
+            color: #FF5722;
+        }
+    </style>
+</head>
+<body>
+<div class="page-group">
+    <header class="bar bar-nav">
+        <button class="button button-link button-nav pull-right" style="color: #FF5722">
+            订单
+            <span class="icon icon-right"></span>
+        </button>
+        <h1 class="title">点餐</h1>
+    </header>
+    <nav class="bar bar-tab">
+        <span style="line-height: 2.5rem;padding: 0 1rem">已点<span id="already">0</span>道菜，共<span id="spend">0</span>元</span>
+        <a href="#" class="pull-right" style="line-height: 2.5rem;padding: 0 1rem;background-color: #FF5722;color: #ffffff">选好了</a>
+    </nav>
+    <div class="content">
+        <div class="row no-gutter">
+            <div class="col-20" style="height:100%;">
+                <div style=";position: fixed;width: 20%;">
+                    <div class="list-block" style="margin: 0;font-size: 0.6rem;">
+                        <ul id="catagory">
+                        </ul>
+                    </div>
+                </div>
+
+                &nbsp
+            </div>
+            <div class="col-80" id="food-list">
+            </div>
+        </div>
+    </div>
+</div>
+<p id="czbh" th:text="${param.czbh}"></p>
+<p id="sjbh" th:text="${param.sjbh}"></p>
+
+<script type='text/javascript' src='http://g.alicdn.com/sj/lib/zepto/zepto.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='http://g.alicdn.com/msui/sm/0.6.2/js/sm.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='http://g.alicdn.com/msui/sm/0.6.2/js/sm-extend.min.js' charset='utf-8'></script>
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script>
+    $(function() {
+        var sjbh = $("#sjbh").text();
+        var czbh = $("#czbh").text();
+
+        var already = 0;
+        var spend = 0.00;
+        var cpbhList = new Array();
+
+        //获取菜品类别
+        $.ajax({
+            url: "/handle/food/catagory/list",
+            type: "get",
+            contentType: "application/json;charset=UTF-8",
+            data: { sjbh : sjbh, page : 1, limit : 100 },
+            dataType: 'json',
+            timeout: 20000,
+            success: function (response) {
+                console.log(response);
+                for(var i = 0; i < response.data.length; i++) {
+                    appendCatagory(response.data[i].cpbh, response.data[i].mc);
+                }
+            },
+            complete: function(xhr, status) {
+                console.log(status);
+                //如果菜品类别获取成功，则获取菜品数据
+                if(status == "success") {
+                    $.ajax({
+                        url: "/handle/food/subfood/list",
+                        type: "get",
+                        contentType: "application/json;charset=UTF-8",
+                        data: { sjbh : sjbh, page : 1, limit : 1000 },
+                        dataType: 'json',
+                        timeout: 20000,
+                        success: function(response) {
+                            console.log(response);
+                            var foodData = response.data;
+                            for(var i = 0; i < foodData.length; i++) {
+                                appendFood(foodData[i].ls, foodData[i].mc, foodData[i].ms, foodData[i].jg, foodData[i].tp, foodData[i].cpbh);
+                            }
+                        },
+                        complete: function(xhr, status) {
+                            //绑定描述过长事件
+                            isDescribeTooLong();
+                            //绑定加减菜事件
+                            //加菜
+                            $(".add").on("click", function() {
+                                console.log($(this).prev().prev().prev().text());
+                                //添加菜品编号到cpbhList
+                                cpbhList.push($(this).prev().prev().prev().text());
+                                console.log(cpbhList);
+                                //获取菜品金额
+                                console.log(parseFloat($(this).parent().prev().text().substring(1)));
+                                var money = parseFloat($(this).parent().prev().text().substring(1));
+                                //获取这个菜品点了的份数
+                                var num = parseInt($(this).prev().text());
+                                //总菜品数++
+                                already++;
+                                //这个菜品数++
+                                num++;
+                                //总金额加上菜品金额
+                                spend += money;
+                                //设置到页面
+                                $("#already").text(already);
+                                $(this).prev().text(num);
+                                $("#spend").text(spend.toFixed(2));
+                            });
+                            //减菜
+                            $(".reduce").on("click", function() {
+                                //获取这个菜品点了的份数
+                                var num = parseInt($(this).next().text());
+                                if(num > 0) {
+                                    //删除cpbhList里面的一个此菜品的编号
+                                    var index = cpbhList.indexOf($(this).prev().text());
+                                    if(index > -1) {
+                                        cpbhList.splice(index, 1);
+                                    }
+                                    //获取菜品金额
+                                    var money = parseFloat($(this).parent().prev().text().substring(1));
+                                    //总菜品数--
+                                    already--;
+                                    //这个菜品数--
+                                    num--;
+                                    //总金额减去菜品金额
+                                    spend -= money;
+                                    //设置到页面
+                                    $("#already").text(already);
+                                    $(this).next().text(num);
+                                    $("#spend").text(spend.toFixed(2));
+                                }
+                            });
+                        }
+                    })
+                }
+            }
+        });
+    });
+
+    //添加菜品类别到页面
+    function appendCatagory(cpbh, mc) {
+        $("#catagory").append("<li><a href='#" + cpbh + "' class='item-link list-button'>" + mc + "</a></li>");
+        $("#food-list").append("<div id='"+ cpbh + "' class='content-block-title' style='margin:0.75rem'><a name='" + cpbh + "'>" + mc + "</a></div>" +
+            "<div class='list-block media-list' style='margin:0'><ul id='" + mc + "'></ul></div>");
+    }
+
+    //添加菜品到页面
+    function appendFood(ls, mc, ms, jg, tp, cpbh) {
+        $("#"+ls).append("<li>\n" +
+            "                            <a href='#' class='item-link item-content'>\n" +
+            "                                <div class='item-media'><img src='" + tp + "' style='width: 4rem;height: 4rem;'></div>\n" +
+            "                                <div class='item-inner'>\n" +
+            "                                    <h5 class='food-title'>"+ mc + "</h5>\n" +
+            "                                    <p class='food-describe'>" + ms + "</p>\n" +
+            "                                    <div>\n" +
+            "                                        <span class='food-price'>￥" + jg + "</span>\n" +
+            "                                        <span class='pull-right'><span style='font-size: 0px'>" + cpbh + "</span><i class='fas fa-minus-circle reduce'></i> <span class='food-num'>0</span> <i class='fas fa-plus-circle add'></i></span>\n" +
+            "                                    </div>\n" +
+            "                                </div>\n" +
+            "                            </a>\n" +
+            "                        </li>");
+    }
+
+    function isDescribeTooLong() {
+        //如果描述过长，则截取前23个字符并再后面加上...
+        for(var i = 0; i < $(".food-describe").length; i++) {
+            if($(".food-describe")[i].innerText.length > 23) {
+                var str = $(".food-describe")[i].innerText.slice(0, 23);
+                str = str.concat("...");
+                $(".food-describe")[i].innerText = str;
+            }
+        }
+    }
+
+</script>
+</body>
+</html>

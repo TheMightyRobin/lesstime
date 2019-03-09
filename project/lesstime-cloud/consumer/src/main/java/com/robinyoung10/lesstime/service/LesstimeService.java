@@ -1,17 +1,18 @@
 package com.robinyoung10.lesstime.service;
 
+import com.robinyoung10.lesstime.config.MultipartConfig;
 import com.robinyoung10.lesstime.model.Cpxx;
 import com.robinyoung10.lesstime.model.Czxx;
 import com.robinyoung10.lesstime.model.Sjxx;
 import org.springframework.cloud.netflix.feign.FeignClient;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
 
-@FeignClient("lesstime-service")
+@FeignClient(name = "lesstime-service", configuration = MultipartConfig.class)
 public interface LesstimeService {
 
     @RequestMapping("/register")
@@ -21,38 +22,47 @@ public interface LesstimeService {
     Sjxx login(Sjxx sjxx);
 
     @RequestMapping("/setting")
-    Sjxx setting(Sjxx sjxx);
+    boolean setting(Sjxx sjxx);
+
+    @RequestMapping("/company/info")
+    Sjxx info(Sjxx sjxx);
 
     @RequestMapping("/table/add")
     Czxx addTable(Czxx czxx);
 
     @RequestMapping("/table/list")
-    List<Czxx> listTable(Czxx czxx);
+    Map listTable(Czxx czxx, @RequestParam("page") int page, @RequestParam("limit") int limit);
 
     @RequestMapping("/table/delete")
-    String deleteTable(Czxx czxx);
+    boolean deleteTable(Czxx czxx);
+
+    @RequestMapping("/table/seat")
+    boolean tableSeat(Czxx czxx);
 
     @RequestMapping("/food/catagory/list")
-    List<Cpxx> foodCatagoryList(Cpxx cpxx);
+    Map foodCatagoryList(Cpxx cpxx, @RequestParam("page") int page, @RequestParam("limit") int limit);
 
     @RequestMapping("/food/catagory/add")
     Cpxx foodCatagoryAdd(Cpxx cpxx);
 
     @RequestMapping("/food/catagory/update")
-    String foodCatagoryUpdate(Cpxx cpxx);
+    boolean foodCatagoryUpdate(Cpxx cpxx);
 
     @RequestMapping("/food/catagory/delete")
-    String foodCatagoryDelete(Cpxx cpxx);
+    Map foodCatagoryDelete(Cpxx cpxx);
 
     @RequestMapping("/food/subfood/list")
-    List<Cpxx> foodSubfoodList(Cpxx cpxx);
+    Map foodSubfoodList(Cpxx cpxx, @RequestParam("page") int page, @RequestParam("limit") int limit);
 
     @RequestMapping("/food/subfood/add")
-    Cpxx foodSubfoodAdd(Cpxx cpxx, @RequestParam("file") MultipartFile file, @RequestParam("request") HttpServletRequest request);
+    boolean foodSubfoodAdd(Cpxx cpxx);
+
+    @RequestMapping(value = "/food/subfood/add/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    String foodSubfoodAddFile(@RequestPart("file") MultipartFile file, @RequestParam("sjbh") String sjbh);
 
     @RequestMapping("/food/subfood/update")
-    String foodSubfoodUpdate(Cpxx cpxx);
+    boolean foodSubfoodUpdate(Cpxx cpxx);
 
     @RequestMapping("/food/subfood/delete")
-    String foodSubfoodDelete(Cpxx cpxx);
+    boolean foodSubfoodDelete(Cpxx cpxx);
 }

@@ -2,7 +2,10 @@ package com.robinyoung10.lesstime.model;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * <p>
@@ -32,6 +35,9 @@ public class Dd extends Model<Dd> {
     private Double cpjg;
 
     private Integer ddzt;
+
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone="GMT+8")
+    private Date ddsj;
 
 
     public String getSjbh() {
@@ -96,6 +102,14 @@ public class Dd extends Model<Dd> {
 
     public void setDdzt(Integer ddzt) {
         this.ddzt = ddzt;
+    }
+
+    public Date getDdsj() {
+        return ddsj;
+    }
+
+    public void setDdsj(Date ddsj) {
+        this.ddsj = ddsj;
     }
 
     @Override

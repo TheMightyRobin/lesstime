@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>扫码点餐系统-新增菜品</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+    <script src="/layui/layui.js"></script>
+</head>
+<body style="padding:10px">
+<div>
+    <form class="layui-form" style="width:50%">
+        <div class="layui-form-item">
+            <label class="layui-form-label">名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="mc" required  lay-verify="required" placeholder="请输入名称" autocomplete="off" class="layui-input" maxlength="20">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">类别</label>
+            <div class="layui-input-block">
+                <select name="ls" lay-verify="required" id="ls">
+                    <option value=""></option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">价格</label>
+            <div class="layui-input-block">
+                <input type="text" name="jg" required  lay-verify="required" placeholder="请输入价格" autocomplete="off" class="layui-input" maxlength="20">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">图片</label>
+            <div class="layui-input-block">
+                <button type="button" class="layui-btn" id="photo">
+                    <i class="layui-icon">&#xe67c;</i>上传
+                </button>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">描述</label>
+            <div class="layui-input-block">
+                <textarea name="ms" required lay-verify="required" placeholder="请输入描述" class="layui-textarea" maxlength="50"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="save">提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    //注意：选项卡 依赖 element 模块，否则无法进行功能性操作
+    layui.use(['form', 'laydate', 'upload'], function(){
+        var form = layui.form,
+            laydate = layui.laydate,
+            upload = layui.upload;
+
+        var sjbh = localStorage.getItem("sjbh");
+        var tp = '';
+
+        //渲染上传图片按钮，返回图片链接
+        var uploadInst = upload.render({
+            elem: '#photo',
+            url: '/handle/food/subfood/file?sjbh=' + sjbh,
+            done: function(res) {
+                console.log(res);
+                tp = res.tp;
+                layer.msg("上传图片成功！");
+            }
+        });
+
+        //获取菜品类别列表，并渲染至下拉框
+        $.ajax({
+            url: "/handle/food/catagory/list",
+            type: "get",
+            contentType: "application/json;charset=UTF-8",
+            data: { sjbh: sjbh, page: 1, limit: 100 },
+            success: function(response) {
+                console.log(response);
+                for(var item in response.data) {
+                    $("#ls").append('<option value="' + response.data[item].cpbh + '">' + response.data[item].mc +'</option>');
+                }
+                form.render('select');
+            },
+            error: function(response) {
+                console.log(response);
+            }
+        });
+
+        //监听提交
+        form.on("submit(save)", function(data) {
+            data.field.sjbh = sjbh;
+            data.field.tp = tp;
+            console.log(JSON.stringify(data.field));
+            var index = layer.load();
+            $.ajax({
+                url: "/handle/food/subfood/add",
+                type: "post",
+                contentType: "application/json;charset=UTF-8",
+                data: JSON.stringify(data.field),
+                dataType: 'json',
+                timeout: 20000,
+                success: function(response) {
+                    console.log(response);
+                    layer.close(index);
+                    if(response) {
+                        layer.msg("保存成功！");
+                    } else {
+                        layer.msg("保存失败，请重试！");
+                    }
+                },
+                error: function(response) {
+                    console.log(response);
+                    layer.close(index);
+                    layer.msg("请求出错，请重试!");
+                }
+            });
+            return false;
+        });
+    });
+</script>
+</body>
+</html>
