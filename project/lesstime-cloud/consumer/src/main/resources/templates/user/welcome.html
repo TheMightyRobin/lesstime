@@ -62,6 +62,7 @@
 <script type='text/javascript' src='http://g.alicdn.com/msui/sm/0.6.2/js/sm.min.js' charset='utf-8'></script>
 <script type='text/javascript' src='http://g.alicdn.com/msui/sm/0.6.2/js/sm-extend.min.js' charset='utf-8'></script>
 <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script src="/layui/layui.js"></script>
 <script>
     var sjbh = $("#sjbh").text();
     var czbh = $("#czbh").text();
@@ -84,9 +85,35 @@
         }
     });
 
-    $("#choose").on('click', function() {
-        window.location.href = "/user/choose?czbh=" + czbh + "&sjbh=" + sjbh;
-    })
+    layui.use('layer', function(){
+        var layer = layui.layer;
+        $("#choose").on('click', function() {
+            var index = layer.load(1);
+            $.ajax({
+                url: "/handle/table/seat",
+                type: "post",
+                contentType: "application/json;charset=UTF-8",
+                data: JSON.stringify({ czbh : czbh }),
+                dataType: "json",
+                timeout: 20000,
+                success: function(response) {
+                    console.log(response);
+                    layer.close(index);
+                    if(response) {
+                        window.location.href = "/user/choose?czbh=" + czbh + "&sjbh=" + sjbh;
+                    } else {
+                        layer.msg("该位置已被其它吃货占领！");
+                    }
+                },
+                error: function(response) {
+                    layer.close(index);
+                    console.log(response);
+                    layer.msg("该位置已被其它吃货占领！");
+                }
+            })
+
+        });
+    });
 </script>
 </body>
 </html>

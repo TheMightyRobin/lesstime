@@ -1,6 +1,6 @@
 $(function() {
-	var qyid = localStorage.getItem("qyid");
+	var qyid = localStorage.getItem("sjbh");
 	if(!qyid) {
-		window.location.href="/ncpsy/login";
+		window.location.href="/login";
 	}
 })

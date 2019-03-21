@@ -3,6 +3,7 @@ package com.robinyoung10.lesstime.service;
 import com.robinyoung10.lesstime.config.MultipartConfig;
 import com.robinyoung10.lesstime.model.Cpxx;
 import com.robinyoung10.lesstime.model.Czxx;
+import com.robinyoung10.lesstime.model.Dd;
 import com.robinyoung10.lesstime.model.Sjxx;
 import org.springframework.cloud.netflix.feign.FeignClient;
 import org.springframework.http.MediaType;
@@ -65,4 +66,13 @@ public interface LesstimeService {
 
     @RequestMapping("/food/subfood/delete")
     boolean foodSubfoodDelete(Cpxx cpxx);
+
+    @RequestMapping("/order/add")
+    Map orderAdd(Dd dd, @RequestParam("cpbhList") List<String> cpbhList);
+
+    @RequestMapping("/order/user/list")
+    Map orderUserList(Dd dd);
+
+    @RequestMapping("/order/company/index")
+    Map orderCompanyIndex(Dd dd);
 }

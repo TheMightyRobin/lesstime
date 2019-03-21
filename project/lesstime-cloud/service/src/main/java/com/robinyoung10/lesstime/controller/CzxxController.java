@@ -132,9 +132,18 @@ public class CzxxController {
     @RequestMapping("/table/seat")
     public boolean tableSeat(@RequestBody Czxx czxx) {
         logger.info("===service===>/table/seat===>czxx = {}", czxx);
-        czxx.setCzzt(2);
-        boolean flag = czxxService.updateById(czxx);
-        return flag;
+        QueryWrapper<Czxx> czxxQueryWrapper = new QueryWrapper<>();
+        czxxQueryWrapper.eq("czbh", czxx.getCzbh());
+        Czxx czxxEntity = czxxService.getOne(czxxQueryWrapper);
+        boolean flag = false;
+        if(czxxEntity.getCzzt() == 0) {
+            czxx.setCzzt(1);
+            czxxService.updateById(czxx);
+            flag = true;
+            return flag;
+        } else {
+            return flag;
+        }
     }
 
 }

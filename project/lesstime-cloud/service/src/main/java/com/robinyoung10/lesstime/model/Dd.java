@@ -26,7 +26,7 @@ public class Dd extends Model<Dd> {
 
     private String ddzbh;
 
-    private Integer czbh;
+    private String czbh;
 
     private String cpbh;
 
@@ -64,11 +64,11 @@ public class Dd extends Model<Dd> {
         this.ddzbh = ddzbh;
     }
 
-    public Integer getCzbh() {
+    public String getCzbh() {
         return czbh;
     }
 
-    public void setCzbh(Integer czbh) {
+    public void setCzbh(String czbh) {
         this.czbh = czbh;
     }
 

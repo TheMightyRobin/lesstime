@@ -1,10 +1,124 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Lesstime扫码点餐</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="stylesheet" href="http://g.alicdn.com/msui/sm/0.6.2/css/sm.min.css">
+    <link rel="stylesheet" href="http://g.alicdn.com/msui/sm/0.6.2/css/sm-extend.min.css">
+    <style type="text/css">
+        .spend, .count {
+            color: #FF5722;
+        }
+        #already, #spend {
+            color: #FF5722;
+        }
+    </style>
 </head>
 <body>
+<div class="page-group">
+    <header class="bar bar-nav">
+        <h1 class="title">订单</h1>
+    </header>
+    <nav class="bar bar-tab">
+        <span style="line-height: 2.5rem;padding: 0 1rem">已点 <span id="already">0</span> 道菜，共 <span id="spend">0</span> 元</span>
+    </nav>
+    <div class="content">
+        <div class="list-block media-list" style="margin: 0;">
+            <ul id="list">
+            </ul>
+        </div>
+    </div>
+</div>
+<p id="czbh" th:text="${param.czbh}"></p>
+<p id="sjbh" th:text="${param.sjbh}"></p>
+<p id="ddbh" th:text="${param.ddbh}"></p>
 
+<script type='text/javascript' src='http://g.alicdn.com/sj/lib/zepto/zepto.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='http://g.alicdn.com/msui/sm/0.6.2/js/sm.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='http://g.alicdn.com/msui/sm/0.6.2/js/sm-extend.min.js' charset='utf-8'></script>
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script src="/layui/layui.js"></script>
+<script>
+    $(function() {
+        var czbh = $("#czbh").text();
+        var sjbh = $("#sjbh").text();
+        var ddbh = $("#ddbh").text();
+
+        var data = {
+            ddbh: ddbh
+        };
+
+        var cpList = new Array();
+
+        layui.use('layer', function(){
+            var layer = layui.layer;
+            var index = layer.load(1);
+            $.ajax({
+                url: "/handle/order/user/list",
+                type: "post",
+                contentType: "application/json;charset=UTF-8",
+                data: JSON.stringify(data),
+                dataType: 'json',
+                timeout: 20000,
+                success: function(response) {
+                    console.log(response);
+                    layer.close(index);
+                    //将菜品份数和总花费设置到页面
+                    $("#already").text(response.count);
+                    $("#spend").text(response.totalSpend.toFixed(2));
+                    //处理返回的子订单菜品列表数据，将处理后的数据放进cpList
+                    for(var i = 0; i < response.cpList.length; i++) {
+                        //菜品item
+                        var cp = {
+                            cpbh: response.cpList[i].cpbh,
+                            cpmc: response.cpList[i].cpmc,
+                            cpjg: response.cpList[i].cpjg,
+                            count: 1
+                        };
+                        //设置flag
+                        var flag = true;
+                        //循环查找放入的cpList数据里面有没有相同的菜品
+                        for(var j = 0; j < cpList.length; j++) {
+                            //如果有相同的菜品，则设置flag为false，增加菜品价格和数量到那个cpList的item
+                            if(cpList[j].cpbh == cp.cpbh) {
+                                cpList[j].cpjg += cp.cpjg;
+                                cpList[j].count++;
+                                flag = false;
+                                break;
+                            }
+                        }
+                        //如果没有相同的菜品，则push进去
+                        if(flag) {
+                            cpList.push(cp);
+                        }
+                    }
+                    console.log(cpList);
+                    addList(cpList);
+                }
+            })
+        });
+    });
+
+    function addList(cpList) {
+        for(var i = 0; i < cpList.length; i++) {
+            $("#list").append("<li>\n" +
+                "                    <div class=\"item-content\">\n" +
+                "                        <div class=\"item-inner\">\n" +
+                "                            <div class=\"item-title-row\">\n" +
+                "                                <div class=\"item-title\"><b>" + cpList[i].cpmc + "</b></div>\n" +
+                "                                <div class=\"item-after\">总价<span class=\"spend\">￥" + cpList[i].cpjg + "</span></div>\n" +
+                "                            </div>\n" +
+                "                            <div class=\"item-subtitle\">已点 <span class=\"count\">" + cpList[i].count + "</span> 份</div>\n" +
+                "                        </div>\n" +
+                "                    </div>\n" +
+                "                </li>");
+        }
+    }
+</script>
 </body>
 </html>
