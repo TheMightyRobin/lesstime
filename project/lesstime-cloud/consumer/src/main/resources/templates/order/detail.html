@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>扫码点餐系统-菜品列表</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+    <script src="/layui/layui.js"></script>
+</head>
+<body style="padding:10px">
+<div>
+    <table id="list" lay-filter="list"></table>
+</div>
+<p id="ddbh" style="visibility:hidden" th:text="${param.ddbh}"></p>
+
+<script>
+    layui.use(['table', 'laypage', 'layer'], function() {
+        var table = layui.table,
+            laypage = layui.laypage,
+            layer = layui.layer;
+
+        var sjbh = localStorage.getItem('sjbh');
+        var ddbh = $("#ddbh").text();
+        var data = {
+            sjbh : sjbh,
+            ddbh : ddbh
+        }
+
+        //渲染表格
+        table.render({
+            elem: '#list',
+            url: '/handle/order/company/list/detail',
+            where: data,
+            page: true,
+            cols: [
+                [
+                    {field: 'ddzbh', title: '订单子编号', sort: true, fixed: 'left'},
+                    {field: 'czbh', title: '餐桌编号'},
+                    {field: 'cpbh', title: '菜品编号'},
+                    {field: 'cpmc', title: '菜品价格'},
+                    {field: 'cpjg', title: '菜品价格'},
+                ]
+            ]
+        });
+    });
+</script>
+</body>
+</html>

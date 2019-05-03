@@ -2,13 +2,11 @@ package com.robinyoung10.lesstime.controller;
 
 import com.robinyoung10.lesstime.model.Dd;
 import com.robinyoung10.lesstime.service.LesstimeService;
+import com.robinyoung10.lesstime.service.WebSocketServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -47,5 +45,41 @@ public class DdController {
     public Map orderCompanyIndex(@RequestBody Dd dd) {
         logger.info("===consummer===>/order/company/index===>dd = {}", dd);
         return lesstimeService.orderCompanyIndex(dd);
+    }
+
+    @RequestMapping("/company/list")
+    public Map orderCompanyList(Dd dd, @RequestParam("page") int page, @RequestParam("limit") int limit) {
+        logger.info("===consummer===>/order/company/list===>dd = {}", dd);
+        return lesstimeService.orderCompanyList(dd, page, limit);
+    }
+
+    @RequestMapping("/company/list/detail")
+    public Map orderCompanyListDetail(Dd dd, @RequestParam("page") int page, @RequestParam("limit") int limit) {
+        logger.info("===consummer===>/order/company/list/detail===>dd = {}", dd);
+        return lesstimeService.orderCompanyListDetail(dd, page, limit);
+    }
+
+    @RequestMapping("/line")
+    public Map orderLine(@RequestBody Dd dd) {
+        logger.info("===consummer===>/order/line===>dd = {}", dd);
+        return lesstimeService.orderLine(dd);
+    }
+
+    @RequestMapping("/check")
+    public boolean orderCheck(@RequestBody Dd dd) {
+        logger.info("===consummer===>/order/check===>dd = {}", dd);
+        return lesstimeService.orderCheck(dd);
+    }
+
+    @RequestMapping("/user/send/{sjbh}")
+    public boolean sendToCompany(String message, @PathVariable String sjbh) {
+        logger.info("===consummer===>/order/user/send/{}===>message = {}", sjbh, message);
+        try {
+            WebSocketServer.sendInfo(message, sjbh);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 }

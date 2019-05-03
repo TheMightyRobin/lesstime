@@ -142,6 +142,9 @@ public class CzxxController {
             flag = true;
             return flag;
         } else {
+            czxx.setCzzt(0);
+            czxxService.updateById(czxx);
+            flag = true;
             return flag;
         }
     }

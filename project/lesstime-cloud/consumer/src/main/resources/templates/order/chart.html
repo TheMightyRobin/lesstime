@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>扫码点餐系统-图表统计</title>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+    <script src="/layui/layui.js"></script>
+    <script src="https://cdn.bootcss.com/Chart.js/2.7.3/Chart.js"></script>
+</head>
+<body style="padding:10px">
+<div style="position: relative;width:50%;height:400px">
+    <canvas id="myChart"></canvas>
+</div>
+
+<script>
+    layui.use(['layer'], function() {
+        var layer = layui.layer;
+
+        var ctx = $("#myChart");
+
+        var data = {
+            sjbh: localStorage.getItem('sjbh')
+        }
+
+        var counts = new Array();
+        var ddList = new Array();
+
+
+
+        $.ajax({
+            url: "/handle/order/line",
+            type: "post",
+            contentType: "application/json;charset=UTF-8",
+            data: JSON.stringify(data),
+            dataType: 'json',
+            timeout: 20000,
+            success: function(response) {
+                console.log(response);
+                countList = response.countList;
+                sysjList = response.ddList;
+                var chartData = {
+                    type: 'line',
+                    data: {
+                        labels: sysjList,
+                        datasets: [{
+                            label: '7天溯源人数',
+                            data: countList,
+                            borderColor: "#009688",
+                            pointBackgroundColor: "#fff",
+                            pointBorderWidth: "2",
+                            backgroundColor: "rgba(0,150,136,0.5)"
+                        }]
+                    }
+                }
+                var myChart = new Chart(ctx, chartData);
+            },
+            error: function(response) {
+                layer.msg("请求出错，请重试！");
+            }
+        });
+
+
+    });
+</script>
+</body>
+</html>

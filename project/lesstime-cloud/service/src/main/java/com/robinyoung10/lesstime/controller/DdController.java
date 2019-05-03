@@ -7,6 +7,7 @@ import com.robinyoung10.lesstime.model.Cpxx;
 import com.robinyoung10.lesstime.model.Dd;
 import com.robinyoung10.lesstime.service.ICpxxService;
 import com.robinyoung10.lesstime.service.IDdService;
+import com.robinyoung10.lesstime.util.Tool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * <p>
@@ -41,6 +39,8 @@ public class DdController {
 
     @Autowired
     private ICpxxService cpxxService;
+
+    private static Tool tool = new Tool();
 
     /**
      * 用户点菜页面点击选好了按钮提交数据后，新增订单
@@ -140,7 +140,7 @@ public class DdController {
 
     @RequestMapping("/company/index")
     public Map orderCompanyIndex(@RequestBody Dd dd) {
-        logger.info("===service===>/order/company/list===>dd = {}", dd);
+        logger.info("===service===>/order/company/index===>dd = {}", dd);
         //新建map用来返回数据
         Map map = new HashMap();
         //查询子订单列表
@@ -152,5 +152,121 @@ public class DdController {
         return map;
     }
 
+    /**
+     * 商家获取订单列表
+     * @param dd
+     * @param page
+     * @param limit
+     * @return
+     */
+    @RequestMapping("/company/list")
+    public Map orderCompanyList(@RequestBody Dd dd, @RequestParam int page, @RequestParam int limit) {
+        logger.info("===service===>/order/company/list===>dd = {}", dd);
+        logger.info("===service===>/table/list===>page = {}", page);
+        logger.info("===service===>/table/list===>limit = {}", limit);
+        QueryWrapper<Dd> ddQueryWrapper = new QueryWrapper<>();
+        ddQueryWrapper.eq("sjbh", dd.getSjbh()).eq("ddzt", 0).isNull("ddzbh");
+        List<Dd> ddList = ddService.list(ddQueryWrapper);
+        int count = ddList.size();
+        //list截取分页的索引
+        int fromIndex = (page-1)*limit;
+        int toIndex = page * limit;
+        //索引最大值不能超过list总个数，否则会出现越界
+        if(toIndex > count) {
+            toIndex = count;
+        }
+        //截取分页数据
+        ddList = ddList.subList(fromIndex, toIndex);
+
+        //使用map来返回数据
+        Map map = new HashMap();
+        map.put("code", 0);
+        map.put("msg", "");
+        map.put("count", count);
+        map.put("data", ddList);
+        return map;
+    }
+
+    /**
+     * 商家订单列表的菜品详情
+     * @param dd
+     * @param page
+     * @param limit
+     * @return
+     */
+    @RequestMapping("/company/list/detail")
+    public Map orderCompanyListDetail(@RequestBody Dd dd, @RequestParam int page, @RequestParam int limit) {
+        logger.info("===service===>/order/company/list===>dd = {}", dd);
+        logger.info("===service===>/table/list===>page = {}", page);
+        logger.info("===service===>/table/list===>limit = {}", limit);
+        QueryWrapper<Dd> ddQueryWrapper = new QueryWrapper<>();
+        ddQueryWrapper.eq("ddbh", dd.getDdbh()).eq("ddzt", 0).isNotNull("ddzbh");
+        List<Dd> ddList = ddService.list(ddQueryWrapper);
+        int count = ddList.size();
+        //list截取分页的索引
+        int fromIndex = (page-1)*limit;
+        int toIndex = page * limit;
+        //索引最大值不能超过list总个数，否则会出现越界
+        if(toIndex > count) {
+            toIndex = count;
+        }
+        //截取分页数据
+        ddList = ddList.subList(fromIndex, toIndex);
+
+        //使用map来返回数据
+        Map map = new HashMap();
+        map.put("code", 0);
+        map.put("msg", "");
+        map.put("count", count);
+        map.put("data", ddList);
+        return map;
+    }
+
+    /**
+     * 查询七天订单数据
+     * @param dd
+     * @return
+     */
+    @RequestMapping("/line")
+    public Map orderLine(@RequestBody Dd dd) {
+        logger.info("===service===>/line===>dd = {}", dd);
+        //map对象用来储存返回数据
+        Map map = new HashMap();
+        //新建sysjList和counts，用于保存时间和访问数
+        List<String> ddList = new ArrayList<>();
+        List<Integer> countList = new ArrayList<>();
+        for(int i = 6; i >= 0; i--) {
+            //获取i天前日期对象
+            Date date = tool.getDateBefore(new Date(), i);
+            //溯源时间转字符串
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+            String ddString = df.format(date);
+            //查询i天前溯源数量
+            QueryWrapper<Dd> ddQueryWrapper = new QueryWrapper<>();
+            ddQueryWrapper.eq("ddsj", ddString).eq("sjbh", dd.getSjbh());
+            int count = ddService.count(ddQueryWrapper);
+            //将结果插入list
+            ddList.add(ddString);
+            countList.add(count);
+        }
+        map.put("ddList", ddList);
+        map.put("countList", countList);
+        return map;
+    }
+
+    /**
+     * 结账
+     * @param dd
+     * @return
+     */
+    @RequestMapping("/check")
+    public boolean orderCheck(@RequestBody Dd dd) {
+        logger.info("===service===>/check===>dd = {}", dd);
+        dd.setDdzt(0);
+        UpdateWrapper<Dd> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("czbh", dd.getCzbh()).ne("ddzt", 0);
+        boolean flag = ddService.update(dd, updateWrapper);
+        return flag;
+    }
 }
 

@@ -20,73 +20,6 @@
 <body class="layui-bg-gray" style="padding:10px">
 <div class="layui-fluid">
     <div class="layui-row layui-col-space15" id="content">
-        <div class="layui-col-md3">
-            <div class="layui-card table">
-                <div class="layui-card-header">
-                    餐桌
-                    <span class="czbh">cz-sj20190305001-1</span>
-                    <span class="layui-badge">已占坐</span>
-                    <i class="layui-icon layui-icon-ok check" style="float:right;cursor:pointer"> 结账</i>
-                </div>
-                <div class="layui-card-body">
-                    <table class="layui-table" lay-even lay-skin="row">
-                        <tbody>
-                        <tr>
-                            <td>肥牛</td>
-                            <td>4份</td>
-                        </tr>
-                        <tr>
-                            <td>肥牛</td>
-                            <td>4份</td>
-                        </tr>
-                        <tr>
-                            <td>肥牛</td>
-                            <td>4份</td>
-                        </tr>
-                        <tr>
-                            <td>肥牛</td>
-                            <td>4份</td>
-                        </tr>
-                        <tr>
-                            <td>肥牛</td>
-                            <td>4份</td>
-                        </tr>
-                        <tr>
-                            <td>肥牛</td>
-                            <td>4份</td>
-                        </tr>
-                        <tr>
-                            <td>肥牛</td>
-                            <td>4份</td>
-                        </tr>
-                        <tr>
-                            <td>肥牛</td>
-                            <td>4份</td>
-                        </tr>
-                        <tr>
-                            <td>肥牛</td>
-                            <td>4份</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div class="layui-col-md3">
-            <div class="layui-card table">
-                <div class="layui-card-header">
-                    餐桌
-                    <span class="czbh">cz-sj20190305001-1</span>
-                    <span class="layui-badge">已占坐</span>
-                    <i class="layui-icon layui-icon-ok check" style="float:right;cursor:pointer"> 结账</i>
-                </div>
-                <div class="layui-card-body">
-                    <table class="layui-table" lay-even lay-skin="row">
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -119,6 +52,9 @@
                     }
                 }
                 console.log(alreadyUseTable);
+                if(alreadyUseTable.length == 0) {
+                    layer.close(index);
+                }
             },
             error: function(response) {
                 console.log(response);
@@ -141,13 +77,97 @@
                             layer.close(index);
                             var cpList = response.cpList;
                             for(var i = cpList.length-1; i >= 0; i--) {
-
+                                console.log(cpList[i]);
+                                $("#" + cpList[i].czbh).append("<tr><td>" + cpList[i].cpmc + "</td><td>1份</td></tr>")
                             }
                         }
                     })
-                }
+                };
+                $(".check").on("click", function () {
+                    console.log(this.parentNode.childNodes[1].innerText);
+                    var czbh = this.parentNode.childNodes[1].innerText;
+                    var index1 = layer.load(1);
+                    $.ajax({
+                        url: "/handle/table/seat",
+                        type: "post",
+                        contentType: "application/json;charset=UTF-8",
+                        data: JSON.stringify({ czbh : czbh }),
+                        dataType: "json",
+                        timeout: 20000,
+                        success: function(response) {
+                            console.log(response);
+                        },
+                        error: function(response) {
+                            layer.close(index1);
+                            console.log(response);
+                        },
+                        complete: function () {
+                            $.ajax({
+                                url: "/handle/order/check",
+                                type: "post",
+                                contentType: "application/json;charset=UTF-8",
+                                data: JSON.stringify({ czbh: czbh }),
+                                dataType: "json",
+                                timeout: 20000,
+                                success: function (response) {
+                                    console.log(response);
+                                    layer.close(index1);
+                                    location.reload();
+                                },
+                                error: function (response) {
+                                    console.log(response);
+                                    layer.close(index1);
+                                }
+                            });
+                        }
+                    });
+                })
             }
-        })
+        });
+
+        var socket;
+        if(typeof(WebSocket) == "undefined") {
+            console.log("您的浏览器不支持WebSocket");
+        }else{
+            console.log("您的浏览器支持WebSocket");
+            //实现化WebSocket对象，指定要连接的服务器地址与端口  建立连接
+            //等同于socket = new WebSocket("ws://localhost:8083/checkcentersys/websocket/20");
+            socket = new WebSocket("ws://114.115.168.26:9000/websocket/" + sjbh);
+            //打开事件
+            socket.onopen = function() {
+                console.log("Socket 已打开");
+                //socket.send("这是来自客户端的消息" + location.href + new Date());
+            };
+            //获得消息事件
+            socket.onmessage = function(msg) {
+                console.log(msg.data);
+                //发现消息进入    开始处理前端触发逻辑
+                var order = JSON.parse(msg.data);
+                console.log(order);
+                var orderCzbh = order[order.length - 1].czbh;
+                layer.msg('餐桌' + orderCzbh + '点菜啦！');
+                $("#" + orderCzbh + "-czzt").removeClass("layui-bg-blue");
+                $("#" + orderCzbh + "-czzt").text("已占座");
+                for(var i = order.length-2; i >= 0; i--) {
+                    console.log(order[i]);
+                    $("#" + orderCzbh).append("<tr><td>" + order[i].cpmc + "</td><td>" + order[i].count + "份</td></tr>");
+                }
+            };
+            //关闭事件
+            socket.onclose = function() {
+                console.log("Socket已关闭");
+            };
+            //发生了错误事件
+            socket.onerror = function() {
+                alert("Socket发生了错误");
+                //此时可以尝试刷新页面
+            }
+            //离开页面时，关闭socket
+            //jquery1.8中已经被废弃，3.0中已经移除
+            // $(window).unload(function(){
+            //     socket.close();
+            //});
+        }
     });
 
     //在页面上增加table
@@ -157,7 +177,7 @@
             "                <div class=\"layui-card-header\">\n" +
             "                    餐桌\n" +
             "                    <span class=\"czbh\">" + czbh + "</span>\n" +
-            "                    <span class=\"layui-badge CZZTCLASS\">CZZT</span>\n" +
+            "                    <span class=\"layui-badge CZZTCLASS\" id='" + czbh + "-czzt'>CZZT</span>\n" +
             "                    <i class=\"layui-icon layui-icon-ok check\" style=\"float:right;cursor:pointer\"> 结账</i>\n" +
             "                </div>\n" +
             "                <div class=\"layui-card-body\">\n" +

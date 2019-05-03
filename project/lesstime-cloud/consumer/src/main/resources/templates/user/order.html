@@ -99,6 +99,20 @@
                     }
                     console.log(cpList);
                     addList(cpList);
+                },
+                complete: function () {
+                    cpList.push({ czbh: czbh});
+                    $.ajax({
+                        url: "/handle/order/user/send/" + sjbh,
+                        type: "get",
+                        contentType: "application/json;charset=UTF-8",
+                        data: { message: JSON.stringify(cpList) },
+                        dataType: 'json',
+                        timeout: 20000,
+                        success: function (response) {
+                            console.log(response);
+                        }
+                    })
                 }
             })
         });

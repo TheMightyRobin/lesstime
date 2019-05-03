@@ -75,4 +75,16 @@ public interface LesstimeService {
 
     @RequestMapping("/order/company/index")
     Map orderCompanyIndex(Dd dd);
+
+    @RequestMapping("/order/company/list")
+    Map orderCompanyList(Dd dd, @RequestParam("page") int page, @RequestParam("limit") int limit);
+
+    @RequestMapping("/order/company/list/detail")
+    Map orderCompanyListDetail(Dd dd, @RequestParam("page") int page, @RequestParam("limit") int limit);
+
+    @RequestMapping("/order/line")
+    Map orderLine(Dd dd);
+
+    @RequestMapping("/order/check")
+    boolean orderCheck(Dd dd);
 }

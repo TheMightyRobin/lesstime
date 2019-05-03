@@ -106,4 +106,22 @@ public class ViewsController {
         logger.info("====访问页面/user/order====");
         return "user/order";
     }
+
+    @RequestMapping("/order/list")
+    public String orderList(Model model) {
+        logger.info("====访问页面/order/list====");
+        return "order/list";
+    }
+
+    @RequestMapping("/order/detail")
+    public String orderDetail(Model model) {
+        logger.info("====访问页面/order/detail====");
+        return "order/detail";
+    }
+
+    @RequestMapping("/order/chart")
+    public String orderChart(Model model) {
+        logger.info("====访问页面/order/chart====");
+        return "order/chart";
+    }
 }
